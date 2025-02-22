@@ -1,0 +1,507 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package model;
+
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
+/**
+ *
+ * @author rizal fathurrahman
+ */
+public class usercredentials {
+
+    //<editor-fold defaultstate="collapsed" desc="Open">
+    public JSONArray selectUser(String npp) {
+        ResultSet rs            = null;
+        JSONArray result        = new JSONArray();
+        CallableStatement cStmt = null;
+        Connection conn         = null;
+        try {
+            connDB tes  = new connDB();
+            conn        = tes.getConnection();
+            cStmt       = conn.prepareCall(
+                    "{CALL sp_view_user_by_npp (?)}",
+                    ResultSet.TYPE_SCROLL_SENSITIVE,
+                    ResultSet.CONCUR_UPDATABLE);
+            cStmt.setString(1, npp);
+//            cStmt.setString(2, nopegawai.trim());
+            rs = cStmt.executeQuery();
+            JSONObject obj = null;
+            int cols = rs.getMetaData().getColumnCount();
+            String fieldname;
+            int dataType;
+            while (rs.next()) {
+                int i = 1;
+                obj = new JSONObject();
+                while (i <= cols) {
+                    fieldname = rs.getMetaData().getColumnName(i).trim();
+                    dataType = rs.getMetaData().getColumnType(i);
+                    if (dataType == Types.BIT || dataType == Types.BOOLEAN) {
+                        obj.put(fieldname, rs.getBoolean(i));
+                    } else if (dataType == Types.INTEGER) {
+                        obj.put(fieldname, rs.getInt(i));
+                    } else {
+                        if (rs.getObject(i) != null) {
+                            obj.put(fieldname, rs.getString(i));
+                        } else {
+                            obj.put(fieldname, null);
+                        }
+                    }
+                    i++;
+                }
+                result.add(obj);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(usercredentials.class.getName()).log(Level.SEVERE, null, ex);
+
+        } finally {
+            // Always make sure result sets and statements are closed,
+            // and the connection is returned to the pool
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                }
+                rs = null;
+            }
+            if (cStmt != null) {
+                try {
+                    cStmt.close();
+                } catch (SQLException e) {
+                }
+                cStmt = null;
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                }
+                conn = null;
+            }
+        }
+        return result;
+    }
+    
+    public JSONArray selectResetter(String npp) {
+        ResultSet rs            = null;
+        JSONArray result        = new JSONArray();
+        CallableStatement cStmt = null;
+        Connection conn         = null;
+        try {
+            connDB tes  = new connDB();
+            conn        = tes.getConnection();
+            cStmt       = conn.prepareCall(
+                    "{CALL sp_select_user_admin_reset_pin}",
+                    ResultSet.TYPE_SCROLL_SENSITIVE,
+                    ResultSet.CONCUR_UPDATABLE);
+//            cStmt.setString(1, npp);
+//            cStmt.setString(2, nopegawai.trim());
+            rs = cStmt.executeQuery();
+            JSONObject obj = null;
+            int cols = rs.getMetaData().getColumnCount();
+            String fieldname;
+            int dataType;
+            while (rs.next()) {
+                int i = 1;
+                obj = new JSONObject();
+                while (i <= cols) {
+                    fieldname = rs.getMetaData().getColumnName(i).trim();
+                    dataType = rs.getMetaData().getColumnType(i);
+                    if (dataType == Types.BIT || dataType == Types.BOOLEAN) {
+                        obj.put(fieldname, rs.getBoolean(i));
+                    } else if (dataType == Types.INTEGER) {
+                        obj.put(fieldname, rs.getInt(i));
+                    } else {
+                        if (rs.getObject(i) != null) {
+                            obj.put(fieldname, rs.getString(i));
+                        } else {
+                            obj.put(fieldname, null);
+                        }
+                    }
+                    i++;
+                }
+                result.add(obj);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(usercredentials.class.getName()).log(Level.SEVERE, null, ex);
+
+        } finally {
+            // Always make sure result sets and statements are closed,
+            // and the connection is returned to the pool
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                }
+                rs = null;
+            }
+            if (cStmt != null) {
+                try {
+                    cStmt.close();
+                } catch (SQLException e) {
+                }
+                cStmt = null;
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                }
+                conn = null;
+            }
+        }
+        return result;
+    }
+    
+    public boolean resetPin(String nopegawai) {
+        boolean result = true;
+        CallableStatement cStmt = null;
+        Connection conn = null;
+        try {
+            connDB tes = new connDB();
+            conn = tes.getConnection();
+            cStmt = conn.prepareCall(
+                    "{CALL resetPin (?)}",
+                    ResultSet.TYPE_SCROLL_SENSITIVE,
+                    ResultSet.CONCUR_UPDATABLE);
+            cStmt.setString(1, nopegawai.trim());
+            cStmt.executeUpdate();
+            cStmt.close();
+            conn.close();
+        } catch (SQLException ex) {
+            result = false;
+            Logger.getLogger(profile.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            // Always make sure result sets and statements are closed,
+            // and the connection is returned to the pool
+            if (cStmt != null) {
+                try {
+                    cStmt.close();
+                } catch (SQLException e) {
+                }
+                cStmt = null;
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                }
+                conn = null;
+            }
+        }
+        return result;
+    }
+    
+    
+
+//    public JSONArray openTelpSaringUrutCari(String saring, String cari) {
+//        ResultSet rs = null;
+//        JSONArray result = new JSONArray();
+//        CallableStatement cStmt = null;
+//        Connection conn = null;
+//        try {
+//            connDB tes = new connDB();
+//            conn = tes.getConnection();
+//            cStmt = conn.prepareCall(
+//                    "{CALL spjapri_select_telpSaringUrutCari (?,?)}",
+//                    ResultSet.TYPE_SCROLL_SENSITIVE,
+//                    ResultSet.CONCUR_UPDATABLE);
+//            cStmt.setString(1, saring.trim());
+//            cStmt.setString(2, cari.trim());
+//            rs = cStmt.executeQuery();
+//            JSONObject obj = null;
+//            int cols = rs.getMetaData().getColumnCount();
+//            String fieldname;
+//            int dataType;
+//            while (rs.next()) {
+//                int i = 1;
+//                obj = new JSONObject();
+//                while (i <= cols) {
+//                    fieldname = rs.getMetaData().getColumnName(i).trim();
+//                    dataType = rs.getMetaData().getColumnType(i);
+//                    switch (dataType) {
+//                        case Types.BIT:
+//                            obj.put(fieldname, rs.getBoolean(i));
+//                            break;
+//                        case Types.BOOLEAN:
+//                            obj.put(fieldname, rs.getBoolean(i));
+//                            break;
+//                        case Types.INTEGER:
+//                            obj.put(fieldname, rs.getInt(i));
+//                            break;
+//                        default:
+//                            if (rs.getObject(i) != null) {
+//                                obj.put(fieldname, rs.getString(i).trim());
+//                            } else {
+//                                obj.put(fieldname, null);
+//                            }
+//                            break;
+//                    }
+//                    i++;
+//                }
+//                result.add(obj);
+//            }
+//        } catch (SQLException ex) {
+//            Logger.getLogger(nomortelp.class.getName()).log(Level.SEVERE, null, ex);
+//
+//        } finally {
+//            // Always make sure result sets and statements are closed,
+//            // and the connection is returned to the pool
+//            if (rs != null) {
+//                try {
+//                    rs.close();
+//                } catch (SQLException e) {
+//                }
+//                rs = null;
+//            }
+//            if (cStmt != null) {
+//                try {
+//                    cStmt.close();
+//                } catch (SQLException e) {
+//                }
+//                cStmt = null;
+//            }
+//            if (conn != null) {
+//                try {
+//                    conn.close();
+//                } catch (SQLException e) {
+//                }
+//                conn = null;
+//            }
+//        }
+//        return result;
+//    }
+//    
+//    public JSONArray selectOneCuti(String nopegawai) {
+//        ResultSet rs = null;
+//        JSONArray result = new JSONArray();
+//        CallableStatement cStmt = null;
+//        Connection conn = null;
+//        try {
+//            connDB tes = new connDB();
+//            conn = tes.getConnection();
+//            cStmt = conn.prepareCall(
+//                    "{CALL sprs_cek_cuti_pegawai(?)}",
+//                    ResultSet.TYPE_SCROLL_SENSITIVE,
+//                    ResultSet.CONCUR_UPDATABLE);
+//            cStmt.setString(1, nopegawai.trim());
+//            rs = cStmt.executeQuery();
+//            JSONObject obj = null;
+//            int cols = rs.getMetaData().getColumnCount();
+//            String fieldname;
+//            int dataType;
+//            while (rs.next()) {
+//                int i = 1;
+//                obj = new JSONObject();
+//                while (i <= cols) {
+//                    fieldname = rs.getMetaData().getColumnName(i).trim();
+//                    dataType = rs.getMetaData().getColumnType(i);
+//                    if (dataType == Types.BIT || dataType == Types.BOOLEAN) {
+//                        obj.put(fieldname, rs.getBoolean(i));
+//                    } else if (dataType == Types.INTEGER) {
+//                        obj.put(fieldname, rs.getInt(i));
+//                    } else {
+//                        if (rs.getObject(i) != null) {
+//                            obj.put(fieldname, rs.getString(i));
+//                        } else {
+//                            obj.put(fieldname, null);
+//                        }
+//                    }
+//                    i++;
+//                }
+//                result.add(obj);
+//            }
+//        } catch (SQLException ex) {
+//            Logger.getLogger(nomortelp.class.getName()).log(Level.SEVERE, null, ex);
+//
+//        } finally {
+//            // Always make sure result sets and statements are closed,
+//            // and the connection is returned to the pool
+//            if (rs != null) {
+//                try {
+//                    rs.close();
+//                } catch (SQLException e) {
+//                }
+//                rs = null;
+//            }
+//            if (cStmt != null) {
+//                try {
+//                    cStmt.close();
+//                } catch (SQLException e) {
+//                }
+//                cStmt = null;
+//            }
+//            if (conn != null) {
+//                try {
+//                    conn.close();
+//                } catch (SQLException e) {
+//                }
+//                conn = null;
+//            }
+//        }
+//        return result;
+//    }
+//
+//    public JSONArray selectTglCuti(String nopegawai) {
+//        ResultSet rs = null;
+//        JSONArray result = new JSONArray();
+//        CallableStatement cStmt = null;
+//        Connection conn = null;
+//        try {
+//            connDB tes = new connDB();
+//            conn = tes.getConnection();
+//            cStmt = conn.prepareCall(
+//                    "{CALL sp_japri_absensi_tanggal(?)}",
+//                    ResultSet.TYPE_SCROLL_SENSITIVE,
+//                    ResultSet.CONCUR_UPDATABLE);
+//            cStmt.setString(1, nopegawai.trim());
+//            rs = cStmt.executeQuery();
+//            JSONObject obj = null;
+//            int cols = rs.getMetaData().getColumnCount();
+//            String fieldname;
+//            int dataType;
+//            while (rs.next()) {
+//                int i = 1;
+//                obj = new JSONObject();
+//                while (i <= cols) {
+//                    fieldname = rs.getMetaData().getColumnName(i).trim();
+//                    dataType = rs.getMetaData().getColumnType(i);
+//                    if (dataType == Types.BIT || dataType == Types.BOOLEAN) {
+//                        obj.put(fieldname, rs.getBoolean(i));
+//                    } else if (dataType == Types.INTEGER) {
+//                        obj.put(fieldname, rs.getInt(i));
+//                    } else {
+//                        if (rs.getObject(i) != null) {
+//                            obj.put(fieldname, rs.getString(i));
+//                        } else {
+//                            obj.put(fieldname, null);
+//                        }
+//                    }
+//                    i++;
+//                }
+//                result.add(obj);
+//            }
+//        } catch (SQLException ex) {
+//            Logger.getLogger(nomortelp.class.getName()).log(Level.SEVERE, null, ex);
+//
+//        } finally {
+//            // Always make sure result sets and statements are closed,
+//            // and the connection is returned to the pool
+//            if (rs != null) {
+//                try {
+//                    rs.close();
+//                } catch (SQLException e) {
+//                }
+//                rs = null;
+//            }
+//            if (cStmt != null) {
+//                try {
+//                    cStmt.close();
+//                } catch (SQLException e) {
+//                }
+//                cStmt = null;
+//            }
+//            if (conn != null) {
+//                try {
+//                    conn.close();
+//                } catch (SQLException e) {
+//                }
+//                conn = null;
+//            }
+//        }
+//        return result;
+//    }
+//
+//    public JSONArray viewTglMerah() {
+//        ResultSet rs = null;
+//        JSONArray result = new JSONArray();
+//        CallableStatement cStmt = null;
+//        Connection conn = null;
+//        try {
+//            connDB tes = new connDB();
+//            conn = tes.getConnection();
+//            cStmt = conn.prepareCall(
+//                    "{CALL sprs_view_tglmerah}",
+//                    ResultSet.TYPE_SCROLL_SENSITIVE,
+//                    ResultSet.CONCUR_UPDATABLE);
+//            rs = cStmt.executeQuery();
+//            JSONObject obj = null;
+//            int cols = rs.getMetaData().getColumnCount();
+//            String fieldname;
+//            int dataType;
+//            while (rs.next()) {
+//                int i = 1;
+//                obj = new JSONObject();
+//                while (i <= cols) {
+//                    fieldname = rs.getMetaData().getColumnName(i).trim();
+//                    dataType = rs.getMetaData().getColumnType(i);
+//                    switch (dataType) {
+//                        case Types.BIT:
+//                            obj.put(fieldname, rs.getBoolean(i));
+//                            break;
+//                        case Types.BOOLEAN:
+//                            obj.put(fieldname, rs.getBoolean(i));
+//                            break;
+//                        case Types.INTEGER:
+//                            obj.put(fieldname, rs.getInt(i));
+//                            break;
+//                        default:
+//                            if (rs.getObject(i) != null) {
+//                                obj.put(fieldname, rs.getString(i).trim());
+//                            } else {
+//                                obj.put(fieldname, null);
+//                            }
+//                            break;
+//                    }
+//                    i++;
+//                }
+//                result.add(obj);
+//            }
+//        } catch (SQLException ex) {
+//            Logger.getLogger(nomortelp.class.getName()).log(Level.SEVERE, null, ex);
+//
+//        } finally {
+//            // Always make sure result sets and statements are closed,
+//            // and the connection is returned to the pool
+//            if (rs != null) {
+//                try {
+//                    rs.close();
+//                } catch (SQLException e) {
+//                }
+//                rs = null;
+//            }
+//            if (cStmt != null) {
+//                try {
+//                    cStmt.close();
+//                } catch (SQLException e) {
+//                }
+//                cStmt = null;
+//            }
+//            if (conn != null) {
+//                try {
+//                    conn.close();
+//                } catch (SQLException e) {
+//                }
+//                conn = null;
+//            }
+//        }
+//        return result;
+//    }
+
+//</editor-fold>
+}
+
+
+
+

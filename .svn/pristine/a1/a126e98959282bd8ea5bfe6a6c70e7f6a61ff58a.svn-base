@@ -1,0 +1,244 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package controller;
+
+import com.google.gson.Gson;
+import java.io.IOException;
+import java.io.PrintWriter;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+import model.formPerbaikanKomputer;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+/**
+ *
+ * @author Rizal.Fathurrahman
+ */
+@WebServlet(name = "eformPK", urlPatterns = {"/eformPK"})
+public class eformPK extends HttpServlet {
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        try (PrintWriter out = response.getWriter()) {
+            /* TODO output your page here. You may use following sample code. */
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<title>Servlet eformPK</title>");            
+            out.println("</head>");
+            out.println("<body>");
+            out.println("<h1>Servlet eformPK at " + request.getContextPath() + "</h1>");
+            out.println("</body>");
+            out.println("</html>");
+        }
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+//        processRequest(request, response);
+        response.setContentType("application/json");
+        Map<String, Object> responseData = new HashMap<>();
+        PrintWriter out = response.getWriter();
+
+        String aksi = request.getParameter("actionForm");
+        formPerbaikanKomputer japri = new formPerbaikanKomputer();
+        
+        // Membaca data JSON dari request
+        BufferedReader reader = request.getReader();
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line);
+        }
+
+        try {
+            switch (aksi) {
+                case "formBaru":
+                    // <editor-fold defaultstate="collapsed" desc="formBaru">
+                    // Parsing JSON menggunakan JSONParser
+                    JSONParser parser = new JSONParser();
+                    JSONObject jsonObject = (JSONObject) parser.parse(sb.toString());
+
+                    // Mengambil nilai JSON
+                    String uname            = (String) jsonObject.get("uname");
+                    JSONObject dataObject   = (JSONObject) jsonObject.get("data");
+
+                    // Validasi data
+                    // <editor-fold defaultstate="collapsed" desc="loop">
+                    if (dataObject != null) {
+                        String txtLokasiKerja       = (String) dataObject.get("txtLokasiKerja");
+                        String txtDepartemen        = (String) dataObject.get("txtDepartemen");
+                        String txtUnit              = (String) dataObject.get("txtUnit");
+                        String txtKplunit           = (String) dataObject.get("txtKplunit");
+                        String txtMasalah           = (String) dataObject.get("txtMasalah");
+                        String txtAlat              = (String) dataObject.get("txtAlat");
+                        String isDone               = (String) dataObject.get("isDone");
+                        String ddlPrioritas         = (String) dataObject.get("ddlPrioritas");
+                        String acceptedBy           = (String) dataObject.get("acceptedBy");
+                        String doneBy               = (String) dataObject.get("doneBy");
+                        String usrEdp               = (String) dataObject.get("usrEdp");
+                        String usrNotify            = (String) dataObject.get("usrNotify");
+                        String otherUnit            = (String) dataObject.get("hasPurposes");
+
+                        // Mengatur nilai pada objek `japri`
+                        japri.setLokasiKerja(txtLokasiKerja);
+                        japri.setDepartemen(txtDepartemen);
+                        japri.setUnit(txtUnit);
+                        japri.setKepalaUnit(txtKplunit);
+                        japri.setApproveUser(Boolean.TRUE);
+                        japri.setProbleam(txtMasalah);
+                        japri.setDevice(txtAlat);
+                        japri.setUser(usrEdp);
+                        japri.setAcceptedBy(acceptedBy);
+                        japri.setDoneBy(doneBy);
+                        japri.setPrioritas(ddlPrioritas);
+                        japri.setIsDone(isDone);
+                        japri.setIsPurposed(otherUnit);
+                        japri.setUsrEdp(usrEdp);
+                        japri.setUsrNotify(usrNotify);
+                        
+
+                        // Simpan data ke database
+                        JSONArray resultFromInsert = japri.inserEformPK();
+                        JSONArray resultFromGet;
+                        String newCreatedFormId;
+                        
+                        if(resultFromInsert.size() > 0)
+                        {
+                            JSONObject resultObject = (JSONObject) resultFromInsert.get(0); 
+                            // Extract needed values from the JSONObject
+                            newCreatedFormId  = (String) resultObject.get("NoForm");
+                            japri.setNoForm(newCreatedFormId);
+                            
+                            resultFromGet = japri.readAfterInsertPK();
+                            
+                            // Tambahkan ke respons
+                            responseData.put("status", "success");
+                            responseData.put("message", "Data berhasil disimpan");
+                            responseData.put("result", resultFromGet);
+                        }
+                        
+                        
+                    } else {
+                        responseData.put("status", "error");
+                        responseData.put("message", "Data tidak valid");
+                    }
+                    // </editor-fold>
+                    break;
+                    // </editor-fold>
+                    
+                case "terimaUser":
+                    // Mengambil nilai JSON
+                    String user_name            = request.getParameter("uname");
+                    String eform_id             = request.getParameter("noform");
+//                   
+                    responseData.put("uname", user_name);
+                    responseData.put("eformId", eform_id);
+                    
+                   
+                    // Simpan data ke database
+                    JSONArray resultFromInsert = japri.terimaUser(user_name, eform_id);
+
+                    if(resultFromInsert.size() > 0)
+                    {
+                        // Tambahkan ke respons
+                        responseData.put("status", "success");
+                        responseData.put("message", "Data berhasil diupdate");
+                        responseData.put("result", resultFromInsert);
+                    }
+                    
+                    else{
+                        // Tambahkan ke respons
+                        responseData.put("status", "failed");
+                        responseData.put("message", "Data gagal diupdate");
+                        responseData.put("result", resultFromInsert);
+                    }
+                    
+                    
+                    break;
+
+                default:
+                    responseData.put("status", "error");
+                    responseData.put("message", "Aksi tidak dikenali");
+                    break;
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+            responseData.put("status", "error");
+            responseData.put("message", "Kesalahan parsing JSON: " + e.getLocalizedMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            responseData.put("status", "error");
+            responseData.put("message", "Terjadi kesalahan: " + e.getMessage());
+            responseData.put("s", "Terjadi kesalahan: " + e.getLocalizedMessage());
+            responseData.put("d", "Terjadi kesalahan: " + e.getCause());
+        } finally {
+            // Konversi map menjadi JSON menggunakan Gson
+            String jsonResponse = new Gson().toJson(responseData);
+            out.write(jsonResponse);
+            out.flush();
+            out.close();
+        }
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
+}
