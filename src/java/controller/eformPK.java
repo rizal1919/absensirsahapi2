@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -32,6 +33,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import model.formPerbaikanKomputer;
+import model.helper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -77,14 +79,18 @@ public class eformPK extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         try {
-            // 1️⃣ Baca file service account JSON
-            String path = getServletContext().getRealPath("/WEB-INF/config/service_accounts.json");
-            JSONObject credentials = readJsonFile(path);
+            // 1️⃣ Tentukan lokasi file service_accounts.json
+            File upOne = helper.getUpOne();
+            String pathFile = upOne.getAbsolutePath() + File.separator + "webapps" + File.separator + "ROOT" + File.separator + "firebase" + File.separator;
+            String filePath = pathFile + "service_accounts.json";
+
+            // 2️⃣ Baca file JSON
+            JSONObject credentials = readJsonFile(filePath);
 
             // 2️⃣ Ambil nilai penting dari JSON
-            String clientEmail = (String) credentials.get("client_email");
-            String privateKey = (String) credentials.get("private_key");
-            String tokenUri = (String) credentials.get("token_uri");
+            String clientEmail  = (String) credentials.get("client_email");
+            String privateKey   = (String) credentials.get("private_key");
+            String tokenUri     = (String) credentials.get("token_uri");
 //
             // 3️⃣ Buat JWT dan tukarkan dengan token akses
             String jwt = JwtGenerator.createJwt(clientEmail, privateKey, tokenUri);
